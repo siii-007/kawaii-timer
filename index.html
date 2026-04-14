@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kawaii Study Timer · 2 Hours</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a0a2e;
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: none;
+  }
+
+  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    animation: twinkle var(--d, 3s) ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0.1; transform: scale(0.8); }
+    50% { opacity: var(--op, 0.7); transform: scale(1.2); }
+  }
+
+  .floatie {
+    position: fixed;
+    font-size: var(--fs, 28px);
+    animation: floatUp var(--fd, 8s) ease-in-out infinite;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 1;
+    user-select: none;
+  }
+  @keyframes floatUp {
+    0%,100% { transform: translateY(0) rotate(0deg); opacity: 0.15; }
+    50% { transform: translateY(-24px) rotate(12deg); opacity: 0.28; }
+  }
+
+  #card {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,143,171,0.25);
+    border-radius: 32px;
+    padding: 48px 64px 40px;
+    text-align: center;
+    min-width: 560px;
+    backdrop-filter: blur(4px);
+  }
+
+  .title {
+    font-size: 26px;
+    font-weight: 900;
+    color: #ffb3cc;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: rgba(255,200,220,0.6);
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+
+  .ring-wrap {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 20px;
+  }
+  .ring-wrap svg { position: absolute; top:0; left:0; }
+  .char-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 130px;
+    height: 130px;
+  }
+  #char-svg { animation: charBob 3s ease-in-out infinite; }
+  @keyframes charBob {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .big-time {
+    font-size: 80px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 40px rgba(255,143,171,0.4);
+  }
+  .phase-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffb3cc;
+    margin-bottom: 24px;
+    min-height: 24px;
+    letter-spacing: 1px;
+  }
+
+  .pbar-wrap {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .pbar-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: #ff8fab;
+    transition: width 1s linear;
+  }
+
+  .blocks {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .blk {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,143,171,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    background: rgba(255,255,255,0.04);
+    transition: background 0.4s, border-color 0.4s;
+  }
+  .blk.done { background: rgba(255,143,171,0.25); border-color: #ff8fab; }
+  .blk.curr { border-color: #ff8fab; border-width: 2px; box-shadow: 0 0 12px rgba(255,143,171,0.4); }
+  .blk.brk-done { background: rgba(119,221,153,0.2); border-color: #77dd99; }
+
+  .btns {
+    display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;
+  }
+  .btn {
+    padding: 12px 36px;
+    border-radius: 28px;
+    border: 1.5px solid rgba(255,143,171,0.5);
+    background: transparent;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    color: #fff;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn:hover { background: rgba(255,143,171,0.2); }
+  .btn.go { background: #ff8fab; border-color: #e06090; }
+  .btn.go:hover { background: #e06090; }
+  .btn.go.brk { background: #77dd99; border-color: #44bb77; }
+  .btn.go.brk:hover { background: #44bb77; }
+
+  .elapsed {
+    font-size: 13px;
+    color: rgba(255,200,220,0.5);
+    letter-spacing: 1px;
+  }
+
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: confettiFall 2.5s ease-in forwards;
+    z-index: 99;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<span class="floatie" style="top:8%;left:6%;--fd:7s;--fs:32px">🌸</span>
+<span class="floatie" style="top:15%;right:8%;--fd:9s;--fs:26px">✦</span>
+<span class="floatie" style="top:70%;left:4%;--fd:11s;--fs:28px">🌟</span>
+<span class="floatie" style="top:80%;right:6%;--fd:8s;--fs:30px">🎀</span>
+<span class="floatie" style="top:40%;left:2%;--fd:10s;--fs:22px">✿</span>
+<span class="floatie" style="top:55%;right:3%;--fd:6s;--fs:24px">♡</span>
+<span class="floatie" style="top:25%;left:10%;--fd:13s;--fs:18px">★</span>
+<span class="floatie" style="bottom:10%;left:15%;--fd:9s;--fs:20px">🌙</span>
+<span class="floatie" style="bottom:15%;right:12%;--fd:12s;--fs:22px">☁</span>
+
+<div id="card">
+  <div class="title">✿ kawaii study timer ✿</div>
+  <div class="subtitle">2 hours · stay focused · you can do it!</div>
+
+  <div class="ring-wrap">
+    <svg width="260" height="260" viewBox="0 0 260 260">
+      <circle cx="130" cy="130" r="108" stroke="rgba(255,143,171,0.15)" stroke-width="10" fill="none"/>
+      <circle id="prog-ring" cx="130" cy="130" r="108"
+        stroke="#ff8fab" stroke-width="10" fill="none"
+        stroke-linecap="round"
+        stroke-dasharray="679"
+        stroke-dashoffset="0"
+        transform="rotate(-90 130 130)"
+        style="transition:stroke-dashoffset 0.8s ease;"/>
+    </svg>
+    <div class="char-center">
+      <svg id="char-svg" viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg" width="130" height="130">
+        <ellipse cx="65" cy="82" rx="36" ry="30" fill="#ff8fab"/>
+        <ellipse cx="65" cy="44" rx="8" ry="12" fill="#77dd77" transform="rotate(-12 65 44)"/>
+        <ellipse cx="65" cy="44" rx="8" ry="12" fill="#77dd77" transform="rotate(12 65 44)"/>
+        <ellipse cx="65" cy="42" rx="5" ry="9" fill="#55cc55"/>
+        <circle cx="65" cy="60" r="29" fill="#ffcdd8"/>
+        <ellipse cx="51" cy="66" rx="8" ry="6" fill="#ffaabb" opacity="0.55"/>
+        <ellipse cx="79" cy="66" rx="8" ry="6" fill="#ffaabb" opacity="0.55"/>
+        <g id="fs-eyes">
+          <ellipse cx="55" cy="57" rx="6" ry="6.5" fill="#3a2f4c"/>
+          <ellipse cx="75" cy="57" rx="6" ry="6.5" fill="#3a2f4c"/>
+          <circle cx="57" cy="55" r="2.2" fill="white"/>
+          <circle cx="77" cy="55" r="2.2" fill="white"/>
+        </g>
+        <path id="fs-mouth" d="M57 70 Q65 78 73 70" stroke="#c97a90" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="30" cy="84" rx="9" ry="7" fill="#ffcdd8" transform="rotate(-25 30 84)"/>
+        <ellipse cx="100" cy="84" rx="9" ry="7" fill="#ffcdd8" transform="rotate(25 100 84)"/>
+        <text x="92" y="48" font-size="14" fill="#ffd700" font-family="sans-serif">★</text>
+        <text x="18" y="52" font-size="12" fill="#c8b6e2" font-family="sans-serif">✦</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="big-time" id="fs-time">25:00</div>
+  <div class="phase-text" id="fs-phase">click start when ready!</div>
+
+  <div class="pbar-wrap">
+    <div class="pbar-fill" id="fs-pbar" style="width:0%"></div>
+  </div>
+
+  <div class="blocks" id="fs-blocks"></div>
+
+  <div class="btns">
+    <button class="btn go" id="fs-start" onclick="fsToggle()">Start</button>
+    <button class="btn" onclick="fsReset()">Reset</button>
+    <button class="btn" onclick="fsSkip()">Skip</button>
+  </div>
+
+  <div class="elapsed" id="fs-elapsed">total elapsed: 0:00:00</div>
+</div>
+
+<script>
+const SCHED = [
+  {type:'work',  mins:25, label:'focus time! you got this ★'},
+  {type:'break', mins:5,  label:'short break~ stretch a little!'},
+  {type:'work',  mins:25, label:'focus time! keep going ✦'},
+  {type:'break', mins:5,  label:'short break~ drink some water!'},
+  {type:'work',  mins:25, label:'focus time! almost halfway!'},
+  {type:'break', mins:10, label:'mid break~ rest your eyes ♡'},
+  {type:'work',  mins:25, label:'last session! finish strong! ✿'},
+  {type:'break', mins:20, label:'all done! amazing work today!'},
+];
+const TOTAL = SCHED.reduce((a,s)=>a+s.mins*60,0);
+let idx=0, segR=SCHED[0].mins*60, elapsed=0, running=false, iv=null, blinkIv=null;
+
+const ring=document.getElementById('prog-ring');
+const timeEl=document.getElementById('fs-time');
+const phaseEl=document.getElementById('fs-phase');
+const startBtn=document.getElementById('fs-start');
+const pbar=document.getElementById('fs-pbar');
+const elapsedEl=document.getElementById('fs-elapsed');
+const blocksEl=document.getElementById('fs-blocks');
+const eyes=document.getElementById('fs-eyes');
+const mouth=document.getElementById('fs-mouth');
+const CIRC=2*Math.PI*108;
+
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function fmtT(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h+':'+String(m).padStart(2,'0')+':'+String(sc).padStart(2,'0');}
+
+function renderBlocks(){
+  blocksEl.innerHTML='';
+  const icons=['🍅','🌸','🌟','🎀'];
+  let wi=0;
+  SCHED.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='blk';
+    if(s.type==='work'){
+      if(i<idx) d.classList.add('done');
+      else if(i===idx&&running) d.classList.add('curr');
+      d.textContent=icons[wi%4]; wi++;
+    } else {
+      if(i<idx) d.classList.add('brk-done');
+      else if(i===idx&&running) d.classList.add('curr');
+      d.textContent='☕';
+    }
+    blocksEl.appendChild(d);
+  });
+}
+
+function updateRing(frac){
+  ring.setAttribute('stroke-dashoffset',(CIRC*(1-frac)).toFixed(2));
+  ring.setAttribute('stroke',SCHED[idx].type==='work'?'#ff8fab':'#77dd99');
+}
+
+function setFace(mood){
+  if(mood==='focus'){
+    eyes.innerHTML=`<ellipse cx="55" cy="58" rx="6" ry="5.5" fill="#3a2f4c"/>
+      <ellipse cx="75" cy="58" rx="6" ry="5.5" fill="#3a2f4c"/>
+      <circle cx="57" cy="56" r="2.2" fill="white"/><circle cx="77" cy="56" r="2.2" fill="white"/>
+      <line x1="48" y1="52" x2="62" y2="54.5" stroke="#3a2f4c" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="82" y1="52" x2="68" y2="54.5" stroke="#3a2f4c" stroke-width="2.2" stroke-linecap="round"/>`;
+    mouth.setAttribute('d','M58 72 Q65 75 72 72');
+  } else if(mood==='happy'){
+    eyes.innerHTML=`<ellipse cx="55" cy="57" rx="6" ry="6.5" fill="#3a2f4c"/>
+      <ellipse cx="75" cy="57" rx="6" ry="6.5" fill="#3a2f4c"/>
+      <circle cx="57" cy="55" r="2.2" fill="white"/><circle cx="77" cy="55" r="2.2" fill="white"/>`;
+    mouth.setAttribute('d','M57 70 Q65 78 73 70');
+  } else if(mood==='sleepy'){
+    eyes.innerHTML=`<path d="M49 57 Q55 62 61 57" stroke="#3a2f4c" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M69 57 Q75 62 81 57" stroke="#3a2f4c" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+    mouth.setAttribute('d','M58 72 Q65 75 72 72');
+  } else if(mood==='party'){
+    eyes.innerHTML=`<text x="47" y="63" font-size="16" font-family="sans-serif">★</text>
+      <text x="65" y="63" font-size="16" font-family="sans-serif">★</text>`;
+    mouth.setAttribute('d','M56 68 Q65 80 74 68');
+  }
+}
+
+function blink(){
+  blinkIv=setInterval(()=>{
+    if(!running) return;
+    const s=eyes.innerHTML;
+    eyes.innerHTML=`<rect x="49" y="57" width="12" height="3" rx="2" fill="#3a2f4c"/>
+      <rect x="69" y="57" width="12" height="3" rx="2" fill="#3a2f4c"/>`;
+    setTimeout(()=>{if(running)eyes.innerHTML=s;},140);
+  },4800);
+}
+
+function updateUI(){
+  const seg=SCHED[idx];
+  timeEl.textContent=fmt(segR);
+  phaseEl.textContent=seg.label;
+  updateRing(segR/(seg.mins*60));
+  pbar.style.width=Math.round((elapsed/TOTAL)*100)+'%';
+  pbar.style.background=seg.type==='work'?'#ff8fab':'#77dd99';
+  elapsedEl.textContent='total elapsed: '+fmtT(elapsed);
+  renderBlocks();
+  document.title=fmt(segR)+' · '+seg.label;
+}
+
+function fsToggle(){
+  if(running){
+    running=false; clearInterval(iv); clearInterval(blinkIv);
+    startBtn.textContent='Resume';
+    startBtn.classList.remove('brk');
+    startBtn.classList.add('go');
+    setFace('happy');
+  } else {
+    if(idx>=SCHED.length) return;
+    running=true;
+    startBtn.textContent='Pause';
+    startBtn.classList.add(SCHED[idx].type==='work'?'go':'brk');
+    setFace(SCHED[idx].type==='work'?'focus':'sleepy');
+    blink();
+    iv=setInterval(tick,1000);
+  }
+}
+
+function tick(){
+  segR--; elapsed++;
+  if(segR<=0){
+    segR=0; updateUI();
+    idx++;
+    if(idx>=SCHED.length){
+      running=false; clearInterval(iv); clearInterval(blinkIv);
+      startBtn.textContent='Done!'; startBtn.disabled=true;
+      phaseEl.textContent='all done! you are amazing! ★★★';
+      setFace('party');
+      launchConfetti();
+      return;
+    }
+    segR=SCHED[idx].mins*60;
+    setFace(SCHED[idx].type==='work'?'focus':'sleepy');
+    updateUI(); return;
+  }
+  updateUI();
+}
+
+function fsReset(){
+  running=false; clearInterval(iv); clearInterval(blinkIv);
+  idx=0; segR=SCHED[0].mins*60; elapsed=0;
+  startBtn.textContent='Start'; startBtn.disabled=false;
+  startBtn.className='btn go';
+  setFace('happy'); updateUI();
+}
+
+function fsSkip(){
+  clearInterval(iv); clearInterval(blinkIv);
+  if(idx<SCHED.length-1){
+    elapsed+=segR; idx++; segR=SCHED[idx].mins*60;
+    if(running){ setFace(SCHED[idx].type==='work'?'focus':'sleepy'); blink(); iv=setInterval(tick,1000); }
+    else setFace('happy');
+  }
+  updateUI();
+}
+
+function launchConfetti(){
+  const colors=['#ff8fab','#ffccd8','#77dd99','#c8b6e2','#ffd700','#ffb3cc'];
+  for(let i=0;i<80;i++){
+    const c=document.createElement('div');
+    c.className='confetti-piece';
+    c.style.left=Math.random()*100+'vw';
+    c.style.top='-20px';
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    c.style.width=(6+Math.random()*10)+'px';
+    c.style.height=(6+Math.random()*10)+'px';
+    c.style.animationDelay=Math.random()*2+'s';
+    c.style.animationDuration=(2+Math.random()*2)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),5000);
+  }
+}
+
+function buildStars(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const el=document.createElement('div');
+    el.className='star';
+    const sz=Math.random()*2.5+0.5;
+    el.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;--op:${0.4+Math.random()*0.6};animation-delay:${Math.random()*4}s`;
+    s.appendChild(el);
+  }
+}
+
+buildStars();
+updateUI();
+</script>
+</body>
+</html>
